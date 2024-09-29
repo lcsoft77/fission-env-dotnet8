@@ -8,6 +8,10 @@ on:
     branches:
       - '**'  # Esegui su ogni pull request
 
+permissions:
+  packages: write
+  contents: read
+  
 jobs:
   build:
     runs-on: ubuntu-latest
