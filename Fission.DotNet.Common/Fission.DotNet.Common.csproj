@@ -12,7 +12,7 @@
     <Authors>Lorenzo Caldon</Authors>
     <Description>Fission dotnet environment common package</Description>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/lcsoft77/Fission.DotNet.Common</RepositoryUrl>
+    <RepositoryUrl>https://github.com/lcsoft77/fission-env-dotnet8</RepositoryUrl>
     <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
