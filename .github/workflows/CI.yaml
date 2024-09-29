@@ -22,6 +22,9 @@ jobs:
       - name: Buil Docker image
         run: docker build -t ghcr.io/${{ github.repository }}/fission-env-dotnet8:latest .
 
+      - name: Push Docker image to GitHub Packages
+        run: docker push ghcr.io/${{ github.repository }}/fission-env-dotnet8:latest
+
   #publish:
   #  needs: build
   #  runs-on: ubuntu-latest
