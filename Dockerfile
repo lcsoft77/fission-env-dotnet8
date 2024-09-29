@@ -6,6 +6,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY Fission.DotNet/Fission.DotNet.csproj .
+COPY Fission.DotNet.Common/Fission.DotNet.Common.csproj .
 RUN dotnet restore
 
 # Copia il codice sorgente e compila
