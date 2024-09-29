@@ -5,6 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Fission.DotNet.Common</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Lorenzo Caldon</Authors>
+    <Description>Fission dotnet environment common package</Description>
+    <PackageLicenseExpression>GPL3</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/lcsoft77/Fission.DotNet.Common</RepositoryUrl>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+  </PropertyGroup>
+
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
   </ItemGroup>
