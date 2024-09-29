@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - '**'  # Esegui su ogni ramo
   pull_request:
     branches:
-      - main
+      - '**'  # Esegui su ogni pull request
 
 jobs:
   build:
