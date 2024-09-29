@@ -29,31 +29,41 @@ jobs:
       - name: Push Docker image to GitHub Packages
         run: docker push ghcr.io/${{ github.repository }}/fission-env-dotnet8:latest
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
 
-  #publish:
-  #  needs: build
-  #  runs-on: ubuntu-latest
-  #  if: github.ref == 'refs/heads/main'
+      - name: Restore dependencies
+        run: dotnet restore Fission.DotNet.Common
 
-    #steps:
-    #  - name: Checkout repository
-    #    uses: actions/checkout@v2
+      - name: Build
+        run: dotnet build --configuration Release --no-restore Fission.DotNet.Common
+        
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
-     # - name: Setup .NET
-     #   uses: actions/setup-dotnet@v2
-     #   with:
-     #     dotnet-version: '8.0.x'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-     # - name: Restore dependencies
-      #  run: dotnet restore Fission.DotNet.Common
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0.x'
 
-      #- name: Build
-      #  run: dotnet build Fission.DotNet.Common --configuration Release --no-restore
+      - name: Restore dependencies
+        run: dotnet restore Fission.DotNet.Common
 
-      #- name: Pack
-      #  run: dotnet pack Fission.DotNet.Common --configuration Release --no-build --output ./nupkg
+      - name: Build
+        run: dotnet build Fission.DotNet.Common --configuration Release --no-restore
 
-      #- name: Publish NuGet package
-      #  env:
-      #    NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      #  run: dotnet nuget push ./nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
+      - name: Pack
+        run: dotnet pack Fission.DotNet.Common --configuration Release --no-build --output ./nupkg
+
+      - name: Publish NuGet package
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
