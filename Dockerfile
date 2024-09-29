@@ -5,13 +5,13 @@ WORKDIR /app
 # Utilizza l'immagine SDK di .NET 8 per il build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY Fission.DotNet/Fission.DotNet.csproj .
-COPY Fission.DotNet.Common/Fission.DotNet.Common.csproj .
-RUN dotnet restore
+COPY Fission.DotNet/Fission.DotNet.csproj Fission.DotNet
+COPY Fission.DotNet.Common/Fission.DotNet.Common.csproj Fission.DotNet.Common
+RUN dotnet restore Fission.DotNet/Fission.DotNet.csproj
 
 # Copia il codice sorgente e compila
-COPY . .
-RUN dotnet publish -c Release -o /app
+#COPY . .
+RUN dotnet publish Fission.DotNet/Fission.DotNet.csproj -c Release -o /app
 
 # Immagine finale
 FROM base AS final
