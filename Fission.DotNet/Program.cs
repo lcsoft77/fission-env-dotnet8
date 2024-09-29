@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Text.Json;
-using TestDockerNet8;
-using TestDockerNet8.Interfaces;
-using TestDockerNet8.Services;
+using Fission.DotNet;
+using Fission.DotNet.Interfaces;
+using Fission.DotNet.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,11 +1,11 @@
 using System;
 using Fission.DotNet.Common;
-using TestDockerNet8.Interfaces;
+using Fission.DotNet.Interfaces;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
-namespace TestDockerNet8.Services;
+namespace Fission.DotNet.Services;
 
 public class FunctionService : IFunctionService
 {

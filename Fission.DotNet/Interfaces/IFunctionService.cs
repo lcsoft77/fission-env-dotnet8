@@ -1,7 +1,7 @@
 using System;
 using Fission.DotNet.Common;
 
-namespace TestDockerNet8.Interfaces;
+namespace Fission.DotNet.Interfaces;
 
 public interface IFunctionService
 {

@@ -1,7 +1,7 @@
 using System;
-using TestDockerNet8.Model;
+using Fission.DotNet.Model;
 
-namespace TestDockerNet8.Interfaces;
+namespace Fission.DotNet.Interfaces;
 
 public interface ISpecializeService
 {

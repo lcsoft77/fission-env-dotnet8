@@ -1,6 +1,6 @@
 using System;
 
-namespace TestDockerNet8.Model;
+namespace Fission.DotNet.Model;
 
 public class FissionSpecializeRequest
 {

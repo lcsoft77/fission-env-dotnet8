@@ -1,8 +1,8 @@
 using System;
-using TestDockerNet8.Interfaces;
-using TestDockerNet8.Model;
+using Fission.DotNet.Interfaces;
+using Fission.DotNet.Model;
 
-namespace TestDockerNet8.Services;
+namespace Fission.DotNet.Services;
 
 public class FunctionStoreService : IFunctionStoreService
 {

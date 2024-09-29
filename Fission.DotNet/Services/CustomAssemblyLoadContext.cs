@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace TestDockerNet8.Services
+namespace Fission.DotNet.Services
 {
     public class CustomAssemblyLoadContext : AssemblyLoadContext
     {

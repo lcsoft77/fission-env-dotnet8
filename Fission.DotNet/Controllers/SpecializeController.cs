@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using TestDockerNet8.Interfaces;
-using TestDockerNet8.Model;
+using Fission.DotNet.Interfaces;
+using Fission.DotNet.Model;
 
-namespace TestDockerNet8
+namespace Fission.DotNet
 {
     public class SpecializeController : Controller
     {

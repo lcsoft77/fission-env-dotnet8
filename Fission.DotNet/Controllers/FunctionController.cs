@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using TestDockerNet8.Interfaces;
+using Fission.DotNet.Interfaces;
 
-namespace TestDockerNet8.Controllers
+namespace Fission.DotNet.Controllers
 {
     [ApiController]
     [Route("/")]
