@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        project:
+          - Fission.DotNet.Common
+          - Fission.DotNet
+          - TestExternalLibrary
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ matrix.project }}
+
+      - name: Build
+        run: dotnet build ${{ matrix.project }} --configuration Release --no-restore
+
+  #publish:
+  #  needs: build
+  #  runs-on: ubuntu-latest
+  #  if: github.ref == 'refs/heads/main'
+
+    #steps:
+    #  - name: Checkout repository
+    #    uses: actions/checkout@v2
+
+     # - name: Setup .NET
+     #   uses: actions/setup-dotnet@v2
+     #   with:
+     #     dotnet-version: '8.0.x'
+
+     # - name: Restore dependencies
+      #  run: dotnet restore Fission.DotNet.Common
+
+      #- name: Build
+      #  run: dotnet build Fission.DotNet.Common --configuration Release --no-restore
+
+      #- name: Pack
+      #  run: dotnet pack Fission.DotNet.Common --configuration Release --no-build --output ./nupkg
+
+      #- name: Publish NuGet package
+      #  env:
+      #    NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      #  run: dotnet nuget push ./nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
