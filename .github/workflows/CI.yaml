@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'  # Esegui su ogni ramo
+  pull_request:
+    branches:
+      - '**'  # Esegui su ogni pull request
+
+permissions:
+  packages: write
+  contents: read
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log in to GitHub Docker Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Buil Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}/fission-env-dotnet8:latest .
+
+      - name: Push Docker image to GitHub Packages
+        run: docker push ghcr.io/${{ github.repository }}/fission-env-dotnet8:latest
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Fission.DotNet.Common
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore Fission.DotNet.Common
+        
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    #if: github.ref == 'refs/heads/main'
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Fission.DotNet.Common
+
+      - name: Build
+        run: dotnet build Fission.DotNet.Common --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack Fission.DotNet.Common --configuration Release --no-build --output ./nupkg
+
+      - name: Publish NuGet package
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
