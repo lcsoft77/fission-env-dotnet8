@@ -5,11 +5,31 @@ namespace Fission.DotNet.Services
 {
     public class CustomAssemblyLoadContext : AssemblyLoadContext
     {
-        public CustomAssemblyLoadContext() : base(isCollectible: true) { }
+        private AssemblyDependencyResolver _resolver;
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        public CustomAssemblyLoadContext(string pluginPath)
         {
-            return null; // Manual loading required
+            _resolver = new AssemblyDependencyResolver(pluginPath);
+        }
+
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            if (assemblyPath != null)
+            {
+                return LoadFromAssemblyPath(assemblyPath);
+            }
+            return null;
+        }
+
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        {
+            var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            if (libraryPath != null)
+            {
+                return LoadUnmanagedDllFromPath(libraryPath);
+            }
+            return IntPtr.Zero;
         }
     }
 }
