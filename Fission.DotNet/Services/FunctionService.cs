@@ -55,14 +55,14 @@ public class FunctionService : IFunctionService
     [MethodImpl(MethodImplOptions.NoInlining)]
     static object ExecuteAndUnload(string assemblyPath, string nameSpace, string functionname, FissionContext context, out WeakReference alcWeakRef)
     {
-        var alc = new CustomAssemblyLoadContext();
+        if (!System.IO.File.Exists($"/function/{assemblyPath}"))
+        {
+            throw new Exception($"File /function/{assemblyPath} not found.");
+        }
+
+        var alc = new CustomAssemblyLoadContext($"/function/{assemblyPath}");
         try
         {
-            if (!System.IO.File.Exists($"/function/{assemblyPath}"))
-            {
-                throw new Exception($"File /function/{assemblyPath} not found.");
-            }
-
             Assembly a = alc.LoadFromAssemblyPath($"/function/{assemblyPath}");
 
             alcWeakRef = new WeakReference(alc, trackResurrection: true);
