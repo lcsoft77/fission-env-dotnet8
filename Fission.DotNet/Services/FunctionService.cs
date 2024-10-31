@@ -60,27 +60,33 @@ public class FunctionService : IFunctionService
             throw new Exception($"File /function/{assemblyPath} not found.");
         }
 
-        var alc = new CustomAssemblyLoadContext($"/function/{assemblyPath}");
+        // Delete the common library if it exists. This is to ensure that the latest version is always loaded.
+        if (File.Exists($"/function/Fission.DotNet.Common.dll"))
+        {
+            File.Delete($"/function/Fission.DotNet.Common.dll");
+        }
+
+        var alc = new CustomAssemblyLoadContext($"/function/{assemblyPath}", isCollectible: true);
         try
         {
-            Assembly a = alc.LoadFromAssemblyPath($"/function/{assemblyPath}");
+            var assemblyFunction = alc.LoadFromAssemblyPath($"/function/{assemblyPath}");
 
             alcWeakRef = new WeakReference(alc, trackResurrection: true);
 
-            Type type = a.GetType($"{nameSpace}.{functionname}");
+            var type = assemblyFunction.GetType($"{nameSpace}.{functionname}");
 
             if (type != null)
             {
                 // Method to execute
-                MethodInfo method = type.GetMethod("Execute");
+                var method = type.GetMethod("Execute");
 
                 if (method != null)
                 {
                     // Create an instance of the object, if necessary
-                    object classInstance = Activator.CreateInstance(type);
+                    var classInstance = Activator.CreateInstance(type);
 
                     // Method parameters, if required
-                    object[] parameters = new object[] { context };
+                    var parameters = new object[] { context };
 
                     // Execute the method
                     return method.Invoke(classInstance, parameters);

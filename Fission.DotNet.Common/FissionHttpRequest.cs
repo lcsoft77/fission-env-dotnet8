@@ -1,41 +1,33 @@
 using System.Text;
-using Microsoft.AspNetCore.Http;
-
 
 namespace Fission.DotNet.Common;
 
 public class FissionHttpRequest
 {
-    private readonly HttpRequest _request;
-    internal FissionHttpRequest(HttpRequest request)
+    public FissionHttpRequest(Stream body, string method, string url, Dictionary<string, string> headers)
     {
-        if (request == null) throw new ArgumentNullException(nameof(request));
-        _request = request;
+        Body = body;
+        Method = method;
+        Url = url;
+        Headers = headers;
     }
 
-    public Stream Body { get { return _request.Body; } }
+    public Stream Body { get; private set; }
 
-    public string BodyAsString()
+    public async Task<string> BodyAsString()
     {
-        int length = (int)_request.Body.Length;
-        byte[] data = new byte[length];
-        _request.Body.Read(data, 0, length);
-        return Encoding.UTF8.GetString(data);
-    }
-
-    public Dictionary<string, IEnumerable<string>> Headers
-    {
-        get
+        if (Body == null)
         {
-            var headers = new Dictionary<string, IEnumerable<string>>();
-            foreach (var kv in _request.Headers)
-            {
-                headers.Add(kv.Key, kv.Value);
-            }
-            return headers;
+            return null;
         }
+
+        using (StreamReader reader = new StreamReader(Body, Encoding.UTF8))
+        {
+            return await reader.ReadToEndAsync();
+        }        
     }
 
-    public string Url { get { return _request.Path.ToString(); } }
-    public string Method { get { return _request.Method; } }
+    public Dictionary<string, string> Headers { get; private set; }
+    public string Url { get; private set; }
+    public string Method { get; private set; }
 }
