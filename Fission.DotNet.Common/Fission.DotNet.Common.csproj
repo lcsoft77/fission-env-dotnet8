@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <PackageId>Fission.DotNet.Common</PackageId>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>Lorenzo Caldon</Authors>
     <Description>Fission dotnet environment common package</Description>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
@@ -23,10 +23,4 @@
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
-
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-  </ItemGroup>
-
 </Project>

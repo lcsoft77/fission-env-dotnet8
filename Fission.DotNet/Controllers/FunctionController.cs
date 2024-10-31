@@ -25,42 +25,42 @@ namespace Fission.DotNet.Controllers
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpGet]
-        public async Task<object> Get() => await this.Run(Request);
+        public async Task<IActionResult> Get() => await this.Run(Request);
 
         /// <summary>
         ///     Handle HTTP POST requests by forwarding to the Fission function.
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpPost]
-        public async Task<object> Post() => await this.Run(Request);
+        public async Task<IActionResult> Post() => await this.Run(Request);
 
         /// <summary>
         ///     Handle HTTP PUT requests by forwarding to the Fission function.
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpPut]
-        public async Task<object> Put() => await this.Run(Request);
+        public async Task<IActionResult> Put() => await this.Run(Request);
 
         /// <summary>
         ///     Handle HTTP HEAD requests by forwarding to the Fission function.
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpHead]
-        public async Task<object> Head() => await this.Run(Request);
+        public async Task<IActionResult> Head() => await this.Run(Request);
 
         /// <summary>
         ///     Handle HTTP OPTIONS requests by forwarding to the Fission function.
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpOptions]
-        public async Task<object> Options() => await this.Run(Request);
+        public async Task<IActionResult> Options() => await this.Run(Request);
 
         /// <summary>
         ///     Handle HTTP DELETE requests by forwarding to the Fission function.
         /// </summary>
         /// <returns>The function return value.</returns>
         [HttpDelete]
-        public async Task<object> Delete() => await this.Run(Request);
+        public async Task<IActionResult> Delete() => await this.Run(Request);
 
         /// <summary>
         ///     Invokes the Fission function on behalf of the caller.
@@ -70,18 +70,37 @@ namespace Fission.DotNet.Controllers
         ///     occurred in the Fission function; or 500 Internal Server Error if the environment container has not yet been
         ///     specialized.
         /// </returns>
-        private async Task<object> Run(HttpRequest request)
+        private async Task<IActionResult> Run(HttpRequest request)
         {
-            var requestTask = Task.Run(() =>
-            {
-                _logger.LogInformation("FunctionController.Run");
+            _logger.LogInformation("FunctionController.Run");
 
-                var context = FissionContext.Build(request);
+            await Task.Delay(1);
 
-                return _functionService.Run(context);
-            });
+                Fission.DotNet.Common.FissionContext context = null;
 
-            return await requestTask;
+                var httpArgs = request.Query.ToDictionary(x => x.Key, x => (object)x.Value);
+                var headers = request.Headers.ToDictionary(x => x.Key, x => (string)x.Value);
+
+                if (request.Headers.ContainsKey("Topic"))
+                {
+                    context = new Fission.DotNet.Common.FissionMqContext(httpArgs,
+                        new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+                }
+                else
+                {
+                    context = new Fission.DotNet.Common.FissionContext(httpArgs,
+                        new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+                }
+
+                try
+                {
+                    return Ok(_functionService.Run(context));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "FunctionController.Run");
+                    return BadRequest( ex.Message);
+                }
         }
     }
 }

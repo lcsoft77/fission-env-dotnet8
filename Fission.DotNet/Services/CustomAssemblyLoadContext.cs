@@ -7,7 +7,8 @@ namespace Fission.DotNet.Services
     {
         private AssemblyDependencyResolver _resolver;
 
-        public CustomAssemblyLoadContext(string pluginPath)
+        public CustomAssemblyLoadContext(string pluginPath, bool isCollectible = false) 
+        : base(pluginPath, isCollectible)
         {
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }
