@@ -29,4 +29,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting(); // Add the routing middleware
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
 app.Run();
