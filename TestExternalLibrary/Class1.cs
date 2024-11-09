@@ -1,11 +1,23 @@
 ﻿using Fission.DotNet.Common;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TestExternalLibrary;
 
 public class Class1
 {
-    public Task<string> Execute(FissionContext input)
+    private readonly IService service;
+
+    public Class1(IService service)
     {
-        return Task.FromResult($"Hello from external library!");
+        this.service = service;
+    }
+    public async Task<string> Execute(FissionContext input)
+    {
+        return await service.Execute(input);
+    }
+
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<IService, Service>();
     }
 }

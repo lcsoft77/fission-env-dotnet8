@@ -32,17 +32,8 @@ public class FunctionService : IFunctionService
         return ExecuteAndUnload(function.Assembly, function.Namespace, function.FunctionName, context);
     }
 
-    private void UnloadWeakReference(WeakReference testAlcWeakRef)
-    {
-        for (int i = 0; testAlcWeakRef.IsAlive && (i < 10); i++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-    }
-
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private async Task<object> ExecuteAndUnload(string assemblyPath, string nameSpace, string functionname, FissionContext context)
+    private async Task<object> ExecuteAndUnload(string assemblyPath, string nameSpace, string classFunctionName, FissionContext context)
     {
         if (!System.IO.File.Exists($"/function/{assemblyPath}"))
         {
@@ -55,6 +46,11 @@ public class FunctionService : IFunctionService
             File.Delete($"/function/Fission.DotNet.Common.dll");
         }
 
+        if (File.Exists($"/function/Microsoft.Extensions.DependencyInjection.Abstractions.dll"))
+        {
+            File.Delete($"/function/Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+        }
+
         WeakReference alcWeakRef = null;
 
         var alc = new CustomAssemblyLoadContext($"/function/{assemblyPath}", isCollectible: true);
@@ -64,23 +60,45 @@ public class FunctionService : IFunctionService
 
             alcWeakRef = new WeakReference(alc, trackResurrection: true);
 
-            var type = assemblyFunction.GetType($"{nameSpace}.{functionname}");
+            var classFunctionNameType = assemblyFunction.GetType($"{nameSpace}.{classFunctionName}");
 
-            if (type != null)
+            if (classFunctionNameType != null)
             {
-                // Method to execute
-                var method = type.GetMethod("Execute");
-
-                if (method != null)
+                MethodInfo configureServicesMethod = classFunctionNameType.GetMethod("ConfigureServices", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                ServiceCollection serviceCollection = null;
+                ServiceProvider serviceProvider = null;
+                if (configureServicesMethod != null)
                 {
-                    // Create an instance of the object, if necessary
-                    var classInstance = Activator.CreateInstance(type);
+                    serviceCollection = new ServiceCollection();
+                    configureServicesMethod.Invoke(null, new object[] { serviceCollection });
+                    serviceCollection.AddTransient(classFunctionNameType);
+                    serviceProvider = serviceCollection.BuildServiceProvider();
+                }
 
-                    // Method parameters, if required
-                    var parameters = new object[] { context };
+                // Method to execute
+                var executeMethod = classFunctionNameType.GetMethod("Execute");
+
+                if (executeMethod != null)
+                {
+                    // Create an instance of the object
+                    object classInstance = null;
+
+                    if (serviceProvider != null)
+                    {
+                        classInstance = serviceProvider.GetService(classFunctionNameType);
+                    }
+                    else
+                    {
+                        classInstance = Activator.CreateInstance(classFunctionNameType);
+                    }
+
+                    if (classInstance == null)
+                    {
+                        throw new Exception("Instance not created.");
+                    }
 
                     // Execute the method
-                    var result = method.Invoke(classInstance, parameters);
+                    var result = executeMethod.Invoke(classInstance, new object[] { context });
 
                     if (result is Task task)
                     {
@@ -110,10 +128,10 @@ public class FunctionService : IFunctionService
             alc.Unload();
 
             for (int i = 0; alcWeakRef.IsAlive && (i < 10); i++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
     }
 }
