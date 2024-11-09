@@ -18,11 +18,11 @@ namespace Fission.DotNet
 
         // GET: SpecializeController
         [HttpPost, Route("/specialize")]
-        public async Task<object> Specialize()
+        public Task<object> Specialize()
         {
             logger.LogInformation("Specialize called");
 
-            return Results.Ok();
+            return Task.FromResult<object>(Results.Ok());
         }
 
 
@@ -42,13 +42,13 @@ namespace Fission.DotNet
                     
                     specializeService.Specialize(request);
 
-                    return Results.Ok();
+                    return Task.FromResult<object>(Results.Ok());
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error when specializing");
-                return Results.BadRequest(ex.Message);
+                return Task.FromResult<object>(Results.BadRequest(ex.Message));
             }
         }        
     }

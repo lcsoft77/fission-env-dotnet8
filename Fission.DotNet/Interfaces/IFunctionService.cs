@@ -5,5 +5,5 @@ namespace Fission.DotNet.Interfaces;
 
 public interface IFunctionService
 {
-    object Run(FissionContext context);
+    Task<object> Run(FissionContext context);
 }
