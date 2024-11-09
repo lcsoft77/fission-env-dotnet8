@@ -15,7 +15,7 @@ public class FunctionService : IFunctionService
     {
         this._functionStoreService = functionStoreService;
     }
-    public object Run(FissionContext context)
+    public Task<object> Run(FissionContext context)
     {
         if (context == null)
         {
@@ -29,18 +29,7 @@ public class FunctionService : IFunctionService
             throw new Exception("Function not specialized.");
         }
 
-        WeakReference testAlcWeakRef = null;
-        try
-        {
-            return ExecuteAndUnload(function.Assembly, function.Namespace, function.FunctionName, context, out testAlcWeakRef);
-        }
-        finally
-        {
-            if (testAlcWeakRef != null)
-            {
-                UnloadWeakReference(testAlcWeakRef);
-            }
-        }
+        return ExecuteAndUnload(function.Assembly, function.Namespace, function.FunctionName, context);
     }
 
     private void UnloadWeakReference(WeakReference testAlcWeakRef)
@@ -53,7 +42,7 @@ public class FunctionService : IFunctionService
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static object ExecuteAndUnload(string assemblyPath, string nameSpace, string functionname, FissionContext context, out WeakReference alcWeakRef)
+    private async Task<object> ExecuteAndUnload(string assemblyPath, string nameSpace, string functionname, FissionContext context)
     {
         if (!System.IO.File.Exists($"/function/{assemblyPath}"))
         {
@@ -65,6 +54,8 @@ public class FunctionService : IFunctionService
         {
             File.Delete($"/function/Fission.DotNet.Common.dll");
         }
+
+        WeakReference alcWeakRef = null;
 
         var alc = new CustomAssemblyLoadContext($"/function/{assemblyPath}", isCollectible: true);
         try
@@ -89,7 +80,20 @@ public class FunctionService : IFunctionService
                     var parameters = new object[] { context };
 
                     // Execute the method
-                    return method.Invoke(classInstance, parameters);
+                    var result = method.Invoke(classInstance, parameters);
+
+                    if (result is Task task)
+                    {
+                        await task.ConfigureAwait(false);
+                        var taskType = task.GetType();
+                        if (taskType.IsGenericType)
+                        {
+                            return taskType.GetProperty("Result").GetValue(task);
+                        }
+                        return null;
+                    }
+
+                    return result;
                 }
                 else
                 {
@@ -104,6 +108,12 @@ public class FunctionService : IFunctionService
         finally
         {
             alc.Unload();
+
+            for (int i = 0; alcWeakRef.IsAlive && (i < 10); i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
         }
     }
 }

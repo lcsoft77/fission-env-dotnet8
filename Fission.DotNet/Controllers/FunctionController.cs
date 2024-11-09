@@ -74,33 +74,31 @@ namespace Fission.DotNet.Controllers
         {
             _logger.LogInformation("FunctionController.Run");
 
-            await Task.Delay(1);
+            Fission.DotNet.Common.FissionContext context = null;
 
-                Fission.DotNet.Common.FissionContext context = null;
+            var httpArgs = request.Query.ToDictionary(x => x.Key, x => (object)x.Value);
+            var headers = request.Headers.ToDictionary(x => x.Key, x => (string)x.Value);
 
-                var httpArgs = request.Query.ToDictionary(x => x.Key, x => (object)x.Value);
-                var headers = request.Headers.ToDictionary(x => x.Key, x => (string)x.Value);
+            if (request.Headers.ContainsKey("Topic"))
+            {
+                context = new Fission.DotNet.Common.FissionMqContext(httpArgs,
+                    new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+            }
+            else
+            {
+                context = new Fission.DotNet.Common.FissionContext(httpArgs,
+                    new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+            }
 
-                if (request.Headers.ContainsKey("Topic"))
-                {
-                    context = new Fission.DotNet.Common.FissionMqContext(httpArgs,
-                        new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
-                }
-                else
-                {
-                    context = new Fission.DotNet.Common.FissionContext(httpArgs,
-                        new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
-                }
-
-                try
-                {
-                    return Ok(_functionService.Run(context));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "FunctionController.Run");
-                    return BadRequest( ex.Message);
-                }
+            try
+            {
+                return Ok(await _functionService.Run(context));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "FunctionController.Run");
+                return BadRequest( ex.Message);
+            }
         }
     }
 }
