@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using Fission.DotNet;
+using Fission.DotNet.Adapter;
 using Fission.DotNet.Interfaces;
 using Fission.DotNet.Services;
 

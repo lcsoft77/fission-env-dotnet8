@@ -11,7 +11,7 @@ public class FunctionStore
                 throw new ArgumentException("Function string cannot be null or empty", nameof(function));
             }
 
-            var parts = function.Split('.');
+            var parts = function.Split(':');
             if (parts.Length != 3)
             {
                 throw new ArgumentException("Function string must contain exactly three parts separated by dots", nameof(function));

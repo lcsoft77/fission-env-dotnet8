@@ -4,16 +4,19 @@ using Fission.DotNet.Interfaces;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using Fission.DotNet.Adapter;
 
 namespace Fission.DotNet.Services;
 
 public class FunctionService : IFunctionService
 {
     private readonly IFunctionStoreService _functionStoreService;
+    private readonly ILogger<FunctionService> _logger;
 
-    public FunctionService(IFunctionStoreService functionStoreService)
+    public FunctionService(IFunctionStoreService functionStoreService, ILogger<FunctionService> logger)
     {
         this._functionStoreService = functionStoreService;
+        this._logger = logger;
     }
     public Task<object> Run(FissionContext context)
     {
@@ -97,8 +100,24 @@ public class FunctionService : IFunctionService
                         throw new Exception("Instance not created.");
                     }
 
+                    var executeMethodParameters = new object[] { context };
+
+                    _logger.LogDebug($"Executing {classFunctionNameType.FullName}.{executeMethod.Name}");
+
+                    var parameters = executeMethod.GetParameters();
+                    if (parameters.Length > 1)
+                    {
+                        _logger.LogDebug($"Method {executeMethod.Name} has more than one parameter.");
+                        if (parameters[1].ParameterType == typeof(Common.ILogger))
+                        {
+                            executeMethodParameters = new object[] { context, new FissionLoggerAdapter(_logger) };
+                        }
+                    }
+
+                    _logger.LogDebug($"Method {executeMethod.Name} has {parameters.Length} parameters.");
+
                     // Execute the method
-                    var result = executeMethod.Invoke(classInstance, new object[] { context });
+                    var result = executeMethod.Invoke(classInstance, executeMethodParameters);
 
                     if (result is Task task)
                     {

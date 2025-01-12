@@ -2,7 +2,7 @@ namespace Fission.DotNet.Common;
 
 public class FissionContext
 {
-    public FissionContext(Dictionary<string, object> args, FissionHttpRequest request)
+    public FissionContext(Dictionary<string, object> args, FissionRequest request)
     {
         if (args == null) throw new ArgumentNullException(nameof(args));
         if (request == null) throw new ArgumentNullException(nameof(request));
@@ -37,7 +37,7 @@ public class FissionContext
 
     public Dictionary<string, object> Arguments { get; private set; }
 
-    public FissionHttpRequest Request { get; private set; }
+    public FissionRequest Request { get; private set; }
     public string TraceID { get; }
     public string FunctionName { get; }
     public string Namespace { get; }
