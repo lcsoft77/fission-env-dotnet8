@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Fission.DotNet.Interfaces;
+using System.Threading.Tasks.Dataflow;
 
 namespace Fission.DotNet.Controllers
 {
@@ -73,7 +74,7 @@ namespace Fission.DotNet.Controllers
         private async Task<IActionResult> Run(HttpRequest request)
         {
             _logger.LogInformation("FunctionController.Run");
-
+           
             Fission.DotNet.Common.FissionContext context = null;
 
             var httpArgs = request.Query.ToDictionary(x => x.Key, x => (object)x.Value);
@@ -82,14 +83,24 @@ namespace Fission.DotNet.Controllers
             if (request.Headers.ContainsKey("Topic"))
             {
                 context = new Fission.DotNet.Common.FissionMqContext(httpArgs,
-                    new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+                    new Fission.DotNet.Common.FissionRequest(request.Body, request.Method, headers));
             }
             else
             {
-                context = new Fission.DotNet.Common.FissionContext(httpArgs,
-                    new Fission.DotNet.Common.FissionHttpRequest(request.Body, request.Method, request.Path, headers));
+                if (request.Headers.ContainsKey("X-Forwarded-Proto"))
+                {
+                    context = new Fission.DotNet.Common.FissionHttpContext(httpArgs,
+                        new Fission.DotNet.Common.FissionRequest(request.Body, request.Method, headers));
+                }
+                else
+                {
+                    context = new Fission.DotNet.Common.FissionContext(httpArgs,
+                        new Fission.DotNet.Common.FissionRequest(request.Body, request.Method, headers));
+                }
             }
 
+            _logger.LogDebug($"Request Body: {await context.Request.BodyAsString()}");
+            
             try
             {
                 return Ok(await _functionService.Run(context));
@@ -97,7 +108,7 @@ namespace Fission.DotNet.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "FunctionController.Run");
-                return BadRequest( ex.Message);
+                return BadRequest(ex.Message);
             }
         }
     }

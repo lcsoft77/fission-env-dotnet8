@@ -41,6 +41,6 @@ This project is inspired by the official Fission environment for .NET Core 2.0 b
 4. **Deploy to Fission**: Use this library to deploy your project to Fission, leveraging the ability to manage multiple linked assemblies. After compressing your project into a ZIP file, you can create the function in Fission with the following command:
 
     ```bash
-    fission fn create --name <function_name> --env dotnet8 --code <your_project.zip> --entrypoint <name_of_assembly_without_extension>.<namespace>.<classname>
+    fission fn create --name <function_name> --env dotnet8 --code <your_project.zip> --entrypoint <name_of_assembly_without_extension>:<namespace>:<classname>
     ```
     Replace `<function_name>` with the name of your function and `<your_project.zip>` with the path to your ZIP file.     

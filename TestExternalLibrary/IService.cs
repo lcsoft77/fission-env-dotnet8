@@ -4,6 +4,6 @@ namespace TestExternalLibrary
 {
     public interface IService
     {
-        Task<string> Execute(FissionContext input);
+        Task<string> Execute(FissionContext input, ILogger logger);
     }
 }

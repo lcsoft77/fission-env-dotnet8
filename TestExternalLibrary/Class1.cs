@@ -11,9 +11,9 @@ public class Class1
     {
         this.service = service;
     }
-    public async Task<string> Execute(FissionContext input)
+    public async Task<string> Execute(FissionContext input, ILogger logger)
     {
-        return await service.Execute(input);
+        return await service.Execute(input, logger);
     }
 
     public static void ConfigureServices(IServiceCollection services)
