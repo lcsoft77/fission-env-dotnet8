@@ -1,49 +1,72 @@
+using System.Text;
+using System.Text.Json;
+
 namespace Fission.DotNet.Common;
 
 public class FissionContext
 {
-    public FissionContext(Dictionary<string, object> args, FissionRequest request)
-    {
-        if (args == null) throw new ArgumentNullException(nameof(args));
-        if (request == null) throw new ArgumentNullException(nameof(request));
-        Arguments = args;
-        Request = request;
+    protected Stream _content;
+    protected Dictionary<string, object> _arguments;
+    protected Dictionary<string, string> _headers;
+    protected Dictionary<string, string> _parameters;
 
-        TraceID = GetHeaderValue("traceparent", Guid.NewGuid().ToString());
-        FunctionName = GetHeaderValue("X-Fission-Function-Name");
-        Namespace = GetHeaderValue("X-Fission-Function-Namespace");
-        ResourceVersion = GetHeaderValue("X-Fission-Function-Resourceversion");
-        UID = GetHeaderValue("X-Fission-Function-Uid");
-        Trigger = GetHeaderValue("Source-Name");
-        ContentType = GetHeaderValue("Content-Type");
-        var strContentLength = GetHeaderValue("Content-Length");
-        if (strContentLength != null)
-        {
-            try
-            {
-                ContentLength = Int32.Parse(strContentLength);
-            }
-            catch (FormatException)
-            {
-                ContentLength = 0;
-            }
-        }
+    public FissionContext(Stream body, Dictionary<string, object> arguments, Dictionary<string, string> headers, Dictionary<string, string> parameters)
+    {
+        if (body == null) throw new ArgumentNullException(nameof(body));
+        if (arguments == null) throw new ArgumentNullException(nameof(arguments));
+        if (headers == null) throw new ArgumentNullException(nameof(headers));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+
+        _content = body;
+        _arguments = arguments;
+        _headers = headers;
+        _parameters = parameters;
     }
 
     protected string GetHeaderValue(string key, string defaultValue = null)
     {
-        return Request.Headers.ContainsKey(key) ? Request.Headers[key] : defaultValue;
+        return _headers.ContainsKey(key) ? _headers[key] : defaultValue;
     }
 
-    public Dictionary<string, object> Arguments { get; private set; }
+    public Dictionary<string, object> Arguments => _arguments;
+    public Dictionary<string, string> Parameters => _parameters;
 
-    public FissionRequest Request { get; private set; }
-    public string TraceID { get; }
-    public string FunctionName { get; }
-    public string Namespace { get; }
-    public string ResourceVersion { get; }
-    public string UID { get; }
-    public string Trigger { get; }
-    public string ContentType { get; }
-    public Int32 ContentLength { get; }
+    public string TraceID => GetHeaderValue("traceparent", Guid.NewGuid().ToString());
+    public string FunctionName => GetHeaderValue("X-Fission-Function-Name");
+    public string Namespace => GetHeaderValue("X-Fission-Function-Namespace");
+    public string ResourceVersion => GetHeaderValue("X-Fission-Function-Resourceversion");
+    public string UID => GetHeaderValue("X-Fission-Function-Uid");
+    public string Trigger => GetHeaderValue("Source-Name");
+    public string ContentType => GetHeaderValue("Content-Type");
+    public Int32 ContentLength => GetHeaderValue("Content-Length") != null ? Int32.Parse(GetHeaderValue("Content-Length")) : 0;
+    public Stream Content => _content;
+
+    public async Task<string?> ContentAsString()
+    {
+        if (_content == null)
+        {
+            return null;
+        }
+
+        _content.Position = 0;
+        using (StreamReader reader = new StreamReader(_content, Encoding.UTF8, leaveOpen: true))
+        {
+            return await reader.ReadToEndAsync();
+        }
+    }
+
+    public async Task<T> ContentAs<T>()
+    {
+        if (_content == null)
+        {
+            return default;
+        }
+
+        _content.Position = 0;
+        using (StreamReader reader = new StreamReader(_content, Encoding.UTF8, leaveOpen: true))
+        {
+            string content = await reader.ReadToEndAsync();
+            return JsonSerializer.Deserialize<T>(content);
+        }
+    }
 }

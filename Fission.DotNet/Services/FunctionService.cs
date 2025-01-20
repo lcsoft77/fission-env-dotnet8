@@ -63,6 +63,16 @@ public class FunctionService : IFunctionService
 
             alcWeakRef = new WeakReference(alc, trackResurrection: true);
 
+            /*// Ottieni tutte le classi nell'assembly
+            Type[] types = assemblyFunction.GetTypes();
+            _logger.LogInformation("Elenco delle classi nell'assembly:");
+            foreach (var type1 in types)
+            {
+                _logger.LogInformation(type1.FullName);
+            }*/
+
+            _logger.LogInformation($"Class try found: {nameSpace}.{classFunctionName}");
+
             var classFunctionNameType = assemblyFunction.GetType($"{nameSpace}.{classFunctionName}");
 
             if (classFunctionNameType != null)
@@ -121,6 +131,7 @@ public class FunctionService : IFunctionService
 
                     if (result is Task task)
                     {
+                        _logger.LogInformation("Task found.");
                         await task.ConfigureAwait(false);
                         var taskType = task.GetType();
                         if (taskType.IsGenericType)
@@ -128,6 +139,10 @@ public class FunctionService : IFunctionService
                             return taskType.GetProperty("Result").GetValue(task);
                         }
                         return null;
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Task not found.");
                     }
 
                     return result;

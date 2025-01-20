@@ -4,14 +4,12 @@ namespace Fission.DotNet.Common;
 
 public class FissionMqContext : FissionContext
 {
-    public FissionMqContext(Dictionary<string, object> args, FissionRequest request) : base(args, request)
+    public FissionMqContext(Stream body, Dictionary<string, object> arguments, Dictionary<string, string> headers, Dictionary<string, string> parameters) : base(body, arguments, headers, parameters)
     {
-        Topic = GetHeaderValue("Topic");
-        ErrorTopic = GetHeaderValue("Errortopic");
-        ResponseTopic = GetHeaderValue("Resptopic");
+        
     }
 
-    public string Topic { get; }
-    public string ErrorTopic { get; }
-    public string ResponseTopic { get; }
+    public string Topic => GetHeaderValue("Topic");
+    public string ErrorTopic => GetHeaderValue("Errortopic");
+    public string ResponseTopic => GetHeaderValue("Resptopic");
 }
