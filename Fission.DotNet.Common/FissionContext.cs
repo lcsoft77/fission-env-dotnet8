@@ -55,7 +55,7 @@ public class FissionContext
         }
     }
 
-    public async Task<T> ContentAs<T>()
+    public async Task<T> ContentAs<T>(JsonSerializerOptions? options = null)
     {
         if (_content == null)
         {
@@ -66,7 +66,7 @@ public class FissionContext
         using (StreamReader reader = new StreamReader(_content, Encoding.UTF8, leaveOpen: true))
         {
             string content = await reader.ReadToEndAsync();
-            return JsonSerializer.Deserialize<T>(content);
+            return JsonSerializer.Deserialize<T>(content, options);
         }
     }
 }
