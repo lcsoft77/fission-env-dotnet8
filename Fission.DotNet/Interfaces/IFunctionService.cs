@@ -5,5 +5,8 @@ namespace Fission.DotNet.Interfaces;
 
 public interface IFunctionService
 {
-    Task<object> Run(FissionContext context);
+    void Load();
+    void Unload();
+    Task<object> Execute(FissionContext context);
+    ICorsPolicy GetCorsPolicy();
 }
