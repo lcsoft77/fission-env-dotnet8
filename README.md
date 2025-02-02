@@ -42,6 +42,152 @@ This project is inspired by Fission's official environment for .NET Core 2.0 but
     ```
     Replace `<function_name>` with the name of your function, and `<your_project.zip>` with the path to your ZIP file.
 
+### HTTP trigger
+
+#### C# Example
+
+```csharp
+public class MyFunction
+{
+    public object Execute(FissionContext context)
+    {
+        if (context is FissionHttpContext request)
+        {
+            return $"Hello from HTTP trigger! Method: {request.Method}, URL: {request.Url}";
+        }
+        return "Invalid context";
+    }
+}
+```
+
+#### CORS
+
+To make external calls, you need to enable CORS (Cross-Origin Resource Sharing). This allows your function to handle requests from different origins. For each HTTP trigger, you will need to create an additional trigger of type OPTIONS.
+
+#### C# Example
+
+```csharp
+public class MyFunction
+{
+    public object Execute(FissionContext context)
+    {
+        if (context is FissionHttpContext request)
+        {
+            return $"Hello from HTTP trigger! Method: {request.Method}, URL: {request.Url}";
+        }
+        return "Invalid context";
+    }
+
+    public static void SetCorsPolicy(ICorsPolicy policy)
+    {
+        policy.AllowAnyHeader();
+        policy.AllowAnyMethod();
+        policy.AllowCredentials();
+        policy.AllowAnyOrigin();      
+    }
+}
+```
+
+### Cron trigger
+
+#### C# Example
+
+```csharp
+public class MyFunction
+{
+    public object Execute(FissionContext context)
+    {
+        return "Hello from Cron trigger!";
+    }
+}
+```
+
+### Queue trigger
+
+#### C# Example
+
+```csharp
+public class MyFunction
+{
+    public object Execute(FissionContext context)
+    {
+        if (context is FissionMqContext request)
+        {
+            return $"Hello from Queue trigger! Topic: {request.Topic}";
+        }
+        return "Invalid context";
+    }
+}
+```
+
+### Async/Await
+
+You can use asynchronous methods in your function by utilizing the `async` and `await` keywords. This allows you to perform asynchronous operations, such as I/O-bound tasks, without blocking the main thread.
+
+#### C# Example
+
+```csharp
+public class MyFunction
+{
+    public async Task<object> ExecuteAsync(FissionContext context)
+    {
+        await Task.Delay(1000); // Simulate an asynchronous operation
+        return "Hello from async function!";
+    }
+}
+```
+
+### Logging
+
+You can integrate logging into your function by using the `ILogger` interface provided by the `Fission.DotNet.Common` namespace. This allows you to log information, warnings, errors, and other messages. Below is an example of how logging is implemented in a class.
+
+#### C# Example
+
+```csharp
+using Fission.DotNet.Common;
+
+public class MyFunction
+{
+    public async Task<string> Execute(FissionContext input, ILogger logger)
+    {
+        logger.LogInformation("Function execution started.");
+        // ...function logic...
+        logger.LogInformation("Function execution completed.");
+        return "Hello with logging!";
+    }
+}
+```
+
+### Service collection
+
+You can use service registration to manage dependencies and create the function class via Inversion of Control (IoC). This allows you to inject services into your function class, making it easier to manage dependencies and improve testability.
+
+#### C# Example
+
+```csharp
+using Fission.DotNet.Common;
+using Microsoft.Extensions.DependencyInjection;
+
+public class MyFunction
+{
+    private readonly IService service;
+
+    public MyFunction(IService service)
+    {
+        this.service = service;
+    }
+    public async Task<string> Execute(FissionContext input, ILogger logger)
+    {
+        return await service.Execute(input, logger);
+    }
+
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<IService, Service>();
+    }
+}
+
+```
 
 ## Requirements
 
